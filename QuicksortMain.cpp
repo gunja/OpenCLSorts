@@ -10,8 +10,6 @@
 //
 
 #include <stdio.h>
-#include <windows.h>
-#include <tchar.h>
 #include <assert.h>
 #include <string.h>
 
@@ -22,10 +20,43 @@
 #include <iterator>
 #include <vector>
 #include <map>
+#include <stdint.h>
+#include <unistd.h>
 
 // Types:
 typedef unsigned int uint;
 typedef	uint QuicksortFlag;
+
+#ifndef LARGE_INTEGER
+#ifndef LONG
+	typedef long LONG;
+#endif
+#ifndef DWORD
+	typedef uint32_t DWORD;
+#endif
+#ifndef LONGLONG
+	typedef long long LONGLONG;
+#endif
+	typedef union _LARGE_INTEGER {
+	  struct {
+	    DWORD LowPart;
+	    LONG  HighPart;
+	  };
+  struct {
+    DWORD LowPart;
+    LONG  HighPart;
+  } u;
+  LONGLONG QuadPart;
+} LARGE_INTEGER, *PLARGE_INTEGER;
+#endif
+
+#ifndef QueryPerformanceFrequency
+	#define QueryPerformanceCounter( x ) clock_gettime(CLOCK_MONOTONIC_RAW, reinterpret_cast<struct  timespec *>( x ) )
+#endif
+
+#ifndef QueryPerformanceFrequency
+	#define QueryPerformanceFrequency( x ) clock_getres( CLOCK_MONOTONIC_RAW, reinterpret_cast<struct  timespec *>( x ) )
+#endif
 
 #define READ_ALIGNMENT  4096 // Intel recommended alignment
 #define WRITE_ALIGNMENT 4096 // Intel recommended alignment
@@ -278,7 +309,7 @@ void GPUQSort(OCLResources *pOCL, size_t size, T* d, T* dn)  {
 	CheckCLError(ciErrNum, "clSetKernelArg failed.", "clSetKernelArg");
 
 	const size_t MAXSEQ = optp(size, 0.00009516, 203);
-	const size_t MAX_SIZE = 12*max(MAXSEQ, QUICKSORT_BLOCK_SIZE);
+	const size_t MAX_SIZE = 12*std::max(MAXSEQ, QUICKSORT_BLOCK_SIZE* 1UL);
 	//std::cout << "MAXSEQ = " << MAXSEQ << std::endl;
 	uint startpivot = median(d[0], d[size/2], d[size-1]);
 	std::vector<work_record> work, done, news;
@@ -298,7 +329,7 @@ void GPUQSort(OCLResources *pOCL, size_t size, T* d, T* dn)  {
 		size_t blocksize = 0;
 		
 		for(auto it = work.begin(); it != work.end(); ++it) {
-			blocksize += max((it->end - it->start)/MAXSEQ, 1);
+			blocksize += std::max((it->end - it->start)/MAXSEQ, 1UL);
 		}
 		for(auto it = work.begin(); it != work.end(); ++it) {
 			uint start = it->start;
@@ -371,8 +402,8 @@ int main(int argc, char** argv)
 	
 	uint arraySize = widthReSz*heightReSz;
 	printf("Allocating array size of %d\n", arraySize);
-	uint* pArray = (uint*)_aligned_malloc (((arraySize*sizeof(uint))/64 + 1)*64, 4096);
-	uint* pArrayCopy = (uint*)_aligned_malloc (((arraySize*sizeof(uint))/64 + 1)*64, 4096);
+	uint* pArray = (uint*)_mm_malloc (((arraySize*sizeof(uint))/64 + 1)*64, 4096);
+	uint* pArrayCopy = (uint*)_mm_malloc (((arraySize*sizeof(uint))/64 + 1)*64, 4096);
 
 	std::generate(pArray, pArray + arraySize, []() { static uint j = 0; return j++; });
 	std::random_shuffle(pArray, pArray + arraySize);
@@ -470,8 +501,8 @@ int main(int argc, char** argv)
 	for(uint k = 0; k < NUM_ITERATIONS; k++) 
 	{
 		stdDev += (AverageTime - times[k])*(AverageTime - times[k]);
-		minTime = min(minTime, times[k]);
-		maxTime = max(maxTime, times[k]);
+		minTime = std::min(minTime, times[k]);
+		maxTime = std::max(maxTime, times[k]);
 	}
 
 	stdDev = sqrt(stdDev/(NUM_ITERATIONS - 1));
@@ -486,10 +517,10 @@ int main(int argc, char** argv)
 
 	printf("-------done--------------------------------------------------------\n");
 	getchar();
-	Sleep(2000);
+	sleep(2000);
 
-	_aligned_free(pArray);
-	_aligned_free(pArrayCopy);
+	_mm_free(pArray);
+	_mm_free(pArrayCopy);
 
 	return 0;
 }

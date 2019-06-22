@@ -290,13 +290,13 @@ void QueryPrintOpenCLDeviceInfo(cl_device_id deviceID, cl_context contextHdl)
 
 	ciErrNum = clGetDeviceInfo(deviceID, CL_DEVICE_MAX_WORK_ITEM_SIZES, sizeof(uMaxWorkItemSizes), &uMaxWorkItemSizes, &uNumBytes);
 	CheckCLError (ciErrNum, "clGetDeviceInfo() query failed.", "clGetDeviceinfo() query success");
-	printf ("CL_DEVICE_MAX_WORK_ITEM_SIZES		:    (%5d, %5d, %5d)%\n", 
+	printf ("CL_DEVICE_MAX_WORK_ITEM_SIZES		:    (%5zd, %5zd, %5zd)%%\n", 
 					uMaxWorkItemSizes[0],uMaxWorkItemSizes[1], uMaxWorkItemSizes[2]);
 	
 	size_t	uMaxWorkGroupSize;
 	ciErrNum = clGetDeviceInfo(deviceID, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &uMaxWorkGroupSize, &uNumBytes);
 	CheckCLError (ciErrNum, "clGetDeviceInfo() query failed.", "clGetDeviceinfo() query success");
-	printf ("CL_DEVICE_MAX_WORK_GROUP_SIZE		:%8d\n", uMaxWorkGroupSize);
+	printf ("CL_DEVICE_MAX_WORK_GROUP_SIZE		:%8zd\n", uMaxWorkGroupSize);
 
 	ciErrNum = clGetDeviceInfo(deviceID, CL_DEVICE_MEM_BASE_ADDR_ALIGN, sizeof(cl_uint), &uMinBaseAddrAlignSizeBits, &uNumBytes);
 	CheckCLError (ciErrNum, "clGetDeviceInfo() query failed.", "clGetDeviceinfo() query success");

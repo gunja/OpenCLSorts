@@ -8,12 +8,13 @@ set(bitness "x86")
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(bitness "x64")
 endif()
+find_package(OpenCL)
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 include_directories($ENV{INTELOCLSDKROOT}/include)
 link_directories($ENV{INTELOCLSDKROOT}/lib/${bitness})
 add_executable(Quicksort QuicksortMain.cpp ImageUtils.h OpenCLUtils.h Quicksort.h QuicksortKernels.cl)
-target_link_libraries(Quicksort OpenCL)
+target_link_libraries(Quicksort ${OpenCL_LIBRARY} )
 
 add_test(NAME Quicksort_smoke
          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
