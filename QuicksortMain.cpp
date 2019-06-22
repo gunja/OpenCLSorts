@@ -50,7 +50,7 @@ typedef	uint QuicksortFlag;
 } LARGE_INTEGER, *PLARGE_INTEGER;
 #endif
 
-#ifndef QueryPerformanceFrequency
+#ifndef QueryPerformanceCounter
 	#define QueryPerformanceCounter( x ) clock_gettime(CLOCK_MONOTONIC_RAW, reinterpret_cast<struct  timespec *>( x ) )
 #endif
 
@@ -226,8 +226,7 @@ void gqsort(OCLResources *pOCL, std::vector<block_record>& blocks, std::vector<p
 		count = 0;
 	}
 
-	LARGE_INTEGER beginClock, endClock, clockFreq;
-	QueryPerformanceFrequency (&clockFreq);
+	struct timespec beginClock, endClock;
 	QueryPerformanceCounter (&beginClock);
 #endif
 	// Lets do phase 1 pass
@@ -241,7 +240,7 @@ void gqsort(OCLResources *pOCL, std::vector<block_record>& blocks, std::vector<p
 
 #ifdef GET_DETAILED_PERFORMANCE
 	QueryPerformanceCounter (&endClock);
-	double totalTime = double(endClock.QuadPart - beginClock.QuadPart) / clockFreq.QuadPart;
+	double totalTime = double( endClock.tv_sec - beginClock.tv_sec + 1e-9 * ( endClock.tv_nsec - beginClock.tv_nsec ));
 	absoluteTotal += totalTime;
 	std::cout << ++count << ": gqsort time " << absoluteTotal * 1000 << " ms" << std::endl;
 #endif
@@ -263,7 +262,7 @@ void lqsort(OCLResources *pOCL, std::vector<work_record>& done, cl_mem tempb, T*
 	CheckCLError(ciErrNum, "clSetKernelArg failed.", "clSetKernelArg");
 
 #ifdef GET_DETAILED_PERFORMANCE
-	LARGE_INTEGER beginClock, endClock, clockFreq;
+	struct timespec beginClock, endClock, clockFreq;
 	QueryPerformanceFrequency (&clockFreq);
 	QueryPerformanceCounter (&beginClock);
 #endif
@@ -280,7 +279,7 @@ void lqsort(OCLResources *pOCL, std::vector<work_record>& done, cl_mem tempb, T*
 
 #ifdef GET_DETAILED_PERFORMANCE
 	QueryPerformanceCounter (&endClock);
-	double totalTime = double(endClock.QuadPart - beginClock.QuadPart) / clockFreq.QuadPart;
+	double totalTime = double( endClock.tv_sec - beginClock.tv_sec + 1e-9 * ( endClock.tv_nsec - beginClock.tv_nsec ));
 	std::cout << "lqsort time " << totalTime * 1000 << " ms" << std::endl;
 #endif
 	clReleaseMemObject(doneb);
@@ -393,8 +392,7 @@ int main(int argc, char** argv)
 
 	double totalTime, quickSortTime, stdSortTime;
 
-	LARGE_INTEGER beginClock, endClock, clockFreq;
-	QueryPerformanceFrequency (&clockFreq);
+	struct timespec beginClock, endClock;
 
 	parseArgs (&myOCL, argc, argv, &test_iterations, pDeviceStr, pVendorStr, &widthReSz, &heightReSz, &bShowCL);
 
@@ -414,7 +412,7 @@ int main(int argc, char** argv)
 	QueryPerformanceCounter (&beginClock);
 	std::sort(pArrayCopy, pArrayCopy + arraySize);
 	QueryPerformanceCounter (&endClock);
-	totalTime = double(endClock.QuadPart - beginClock.QuadPart) / clockFreq.QuadPart;	
+	totalTime = double( endClock.tv_sec - beginClock.tv_sec + 1e-9 * ( endClock.tv_nsec - beginClock.tv_nsec ));
 	std::cout << "Time to sort: " << totalTime * 1000 << " ms" << std::endl;
 	stdSortTime = totalTime;
 
@@ -424,7 +422,7 @@ int main(int argc, char** argv)
 	QueryPerformanceCounter (&beginClock);
 	quicksort(pArrayCopy, 0, arraySize-1);
 	QueryPerformanceCounter (&endClock);
-	totalTime = double(endClock.QuadPart - beginClock.QuadPart) / clockFreq.QuadPart;
+	totalTime = double( endClock.tv_sec - beginClock.tv_sec + 1e-9 * ( endClock.tv_nsec - beginClock.tv_nsec ));
 	std::cout << "Time to sort: " << totalTime * 1000 << " ms" << std::endl;
 	quickSortTime = totalTime;
 #ifdef TRUST_BUT_VERIFY
@@ -454,7 +452,7 @@ int main(int argc, char** argv)
 	QueryPerformanceCounter (&beginClock);
 	CompileOpenCLProgram (myOCL.deviceID, myOCL.contextHdl, pSourceFileStr, &myOCL.programHdl);
 	QueryPerformanceCounter (&endClock);
-	totalTime = double(endClock.QuadPart - beginClock.QuadPart) / clockFreq.QuadPart;
+	totalTime = double( endClock.tv_sec - beginClock.tv_sec + 1e-9 * ( endClock.tv_nsec - beginClock.tv_nsec ));
 	std::cout << "Time to build OpenCL Program: " << totalTime * 1000 << " ms" << std::endl;
 	InstantiateOpenCLKernels (&myOCL);
 
@@ -477,7 +475,7 @@ int main(int argc, char** argv)
 		QueryPerformanceCounter (&beginClock);
 		GPUQSort(&myOCL, arraySize, pArray, pArrayCopy);
 		QueryPerformanceCounter (&endClock);
-		totalTime = double(endClock.QuadPart - beginClock.QuadPart) / clockFreq.QuadPart;
+		totalTime = double( endClock.tv_sec - beginClock.tv_sec + 1e-9 * ( endClock.tv_nsec - beginClock.tv_nsec ));
 		std::cout << "Time to sort: " << totalTime * 1000 << " ms" << std::endl;
 		times[k] = totalTime;
 		AverageTime += totalTime;
@@ -517,7 +515,7 @@ int main(int argc, char** argv)
 
 	printf("-------done--------------------------------------------------------\n");
 	getchar();
-	sleep(2000);
+	sleep(2);
 
 	_mm_free(pArray);
 	_mm_free(pArrayCopy);
