@@ -16,6 +16,9 @@ link_directories($ENV{INTELOCLSDKROOT}/lib/${bitness})
 add_executable(Quicksort QuicksortMain.cpp ImageUtils.h OpenCLUtils.h Quicksort.h QuicksortKernels.cl)
 target_link_libraries(Quicksort ${OpenCL_LIBRARY} )
 
+add_executable( Bitonicsort basic.cpp BitonicSort.cpp BitonicSort.cl cmdparser.cpp oclobject.cpp )
+target_link_libraries(Bitonicsort ${OpenCL_LIBRARY} )
+
 add_test(NAME Quicksort_smoke
          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
          COMMAND Quicksort 100 gpu intel 2048  2048  how_cl)
