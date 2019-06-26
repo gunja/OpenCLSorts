@@ -26,7 +26,7 @@ Done in 48.74 seconds (391.331 MB/s)
 # Sorting
 
 ```
-./external_sort input.data output.data 1
+./external_merge_sort input.data output.data 1
 ```
 
 
